@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,16 +16,18 @@ namespace ВычМат_Лаба1
         {
             float x=0;
             float result = x;
-
+            int count = 0;
             while (Math.Abs(b - a) >= 2 * e)
             {
                 result = x;
                 x = (a + b) / 2;
-
-                if(f(a)<=0)
+                if(f(a) * f(x) < 0)
                 {
-                    if (f(x) < 0) a = x;
-                    else b = x;
+                    b = x;
+                }
+                else if(f(x) * f(b) < 0)
+                {
+                    a = x;  
                 }
             }
             return result;
@@ -64,30 +66,30 @@ namespace ВычМат_Лаба1
                // if (min > df(i)) min = df(i);
             }
 
-            c = -1 / max;
-            max = 2 * c * a - 20 * c * (float)Math.Cos(a);
-            for (float i = a; i < b; i+=e)
-            {
-                if (max < 2 * c * i - 20 * c * Math.Cos(i)) max = 2 * c * i - 20 * c * (float)Math.Cos(i);
-            }
+            c = 1 / max;
             float q = max;
             bool flag;
+            int count = 0;
+            if (f(x) * c + x < a) c *= -1;
             do
             {
+                count += 1;
                 result = x;
+                
                 x = f(x) * c + x;
                 if (q > 1 / 2)
                 {
-                    if (Math.Abs(result - x) < (q - 1) * e / q) flag = true;
+                    if (Math.Abs(result - x) > (q - 1) * e / q) flag = true;
                     else flag = false;
                 }
                 else
                 {
-                    if (Math.Abs(result - x) <= e) flag = true;
+                    if (Math.Abs(result - x) > e) flag = true;
                     else flag = false;
                 }
             }
             while (flag);
+            
             return x;
         }
     }
