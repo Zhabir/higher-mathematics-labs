@@ -7,10 +7,8 @@ using System.Threading.Tasks;
 using System.Numerics;
 using System.Drawing;
 using System.Runtime.ConstrainedExecution;
-using System.Runtime.Intrinsics;
 using static methodGauss.Class1;
 using System.Timers;
-using System.Text.Json;
 using System.IO;
 using System.Security;
 using System.Xml;
@@ -39,7 +37,15 @@ namespace methodGauss
             }
             return matrix;
         }
-
+        static public void showMatrix(float[,] matrix)
+        {
+            for (int i = 0; i < N; i++)
+            {
+                for (int j = 0; j < N + 1; j++)
+                    Console.Write($"{matrix[i, j]} ");
+                Console.Write("\n");
+            }
+        }
         static public void Gauss(float[,] matrix, int N)
         {
             float tmp;
@@ -66,7 +72,7 @@ namespace methodGauss
                         matrix[j, k] -= tmp * matrix[i, k];
                 }
 
-                Console.WriteLine("\nMatrix after —tmp:");
+                Console.WriteLine("\nMatrix after â€”tmp:");
                 for (int i1 = 0; i1 < 3; i1++)
                 {
                     for (int j1 = 0; j1 < 4; j1++)
@@ -88,15 +94,59 @@ namespace methodGauss
         }
         public static float[] x;
 
-        static public changeMatrix(float[,] matrix, int size )
+        static public float getSum(float[,] matrix, int indexLine, int indexColumn)
+        {
+            float sum = 0;
+            for (int i = indexLine + 1; i < N; i++)
+                sum += matrix[i,indexColumn];
+            return sum;
+        }
+        static public float[,] swapLines(float[,] matrix, int index)
+        {
+            for (int i = 0; i <= N; i++)
+            {
+                float c = matrix[index, i];
+                matrix[index, i] = matrix[index + 1, i];
+                matrix[index+1, i] = c; 
+            }
+            return matrix;
+        }
+        static public float[,] changeMatrix(float[,] matrix)
         {
             int index = 0;
-            for (int i=0; i<N; i++)
+            for (int i = 0; i < N; i++)
             {
-                if(matrix[i,index]>)
+                if (matrix[i, index] < getSum(matrix, i, index))
+                    matrix = swapLines(matrix, i);
+                index++;
             }
-        }
 
+            return matrix;
+        }
+        public static float norm_matrix(float[,] matrix, int N)
+        {
+            float max_sum = 0;
+            float sum = 0;
+            for (int i = 0; i < N; i++)
+            {
+                for (int j = 0; j < N; j++)
+                {
+                    sum += Math.Abs(matrix[i, j]);
+                }
+                if (max_sum < sum) max_sum = sum;
+                sum = 0;
+            }
+            return max_sum;
+        }
+        public static float norm_vec(float[] vec, int N)
+        {
+            float max = Math.Abs(vec[0]);
+            for (int i = 0; i < N; i++)
+            {
+                if (max < Math.Abs(vec[i])) max = vec[i];
+            }
+            return max;
+        }
         static public void Iter_Method(float[,] matrix, int N)
         {
             float[,] alpha = new float[N, N];
@@ -104,6 +154,9 @@ namespace methodGauss
             float buff = 0;
             float norm_B = 0;
             float sum_of_alpha = 0;
+            matrix = changeMatrix(matrix);
+            Console.WriteLine("\nMatrix after changing:");
+            showMatrix(matrix);
             for (int i = 0; i < N; i++)
             {
                 beta[i] = matrix[i, N] / matrix[i, i];
@@ -121,7 +174,20 @@ namespace methodGauss
                     }
                 }
             }
-            for (int j = 0; j < N; j++) //èùåì ìàêñèìàëüíóþ ñóììó ñòðîê(íîðìó)
+
+            Console.WriteLine("\nALPHA Matrix:");
+            for(int i=0; i<N; i++)
+            {
+                for (int j = 0; j < N; j++)
+                {
+                    Console.Write($"{alpha[i,j]} ");
+                }
+                Console.Write($"\n");
+            }
+            Console.WriteLine("\nBeta Matrix:");
+            for(int i=0; i<N;i++)
+                Console.WriteLine($"{beta[i]} ");
+            for (int j = 0; j < N; j++) //Ð¸Ñ‰ÐµÐ¼ Ð¼Ð°ÐºÑÐ¸Ð¼Ð°Ð»ÑŒÐ½ÑƒÑŽ ÑÑƒÐ¼Ð¼Ñƒ ÑÑ‚Ñ€Ð¾Ðº(Ð½Ð¾Ñ€Ð¼Ñƒ)
             {
                 for (int i = 0; i < N; i++)
                 {
@@ -139,6 +205,7 @@ namespace methodGauss
             {
                 x[i] = beta[i];
             }
+            int itera = 0;
             while (true)
             {
                 iter++;
@@ -149,45 +216,54 @@ namespace methodGauss
                 for (int i = 0; i < N; i++)
                 {
                     sum_of_alpha = (float)0.0;
+
                     for (int j = 0; j < N; j++)
-                        sum_of_alpha += alpha[i, j] * x[j];
+                        sum_of_alpha += alpha[i, j] * (t[j]);
+                    Console.WriteLine($"\nsum of alphs = {sum_of_alpha}");
+                    x[i] = beta[i] - sum_of_alpha;
 
-                    x[i] = beta[i] + sum_of_alpha;
+                    Console.WriteLine($"\nx[{i}] = {beta[i]}+{sum_of_alpha} = {x[i]}");
                 }
-                //ïðîâåðêà óñëîâèÿ îêîí÷àíèÿ
-                for (int i = 0; i < N; i++)
-                    norm += Math.Abs(t[i] - x[i]);
+                //Ð¿Ñ€Ð¾Ð²ÐµÑ€ÐºÐ° ÑƒÑÐ»Ð¾Ð²Ð¸Ñ Ð¾ÐºÐ¾Ð½Ñ‡Ð°Ð½Ð¸Ñ
 
-                if (norm <= (1 - norm_B) * 0.0000001 / norm_B)
-                    return;
-                norm = (float)0.0;
+                float[] v = new float[N];
+                for(int i = 0; i < N; i++)
+                {
+                    v[i] = t[i] - x[i];
+                }
+                if (norm_vec(v, N) <= ((1 - norm_matrix(alpha, N)) / norm_matrix(alpha, N) * 0.0001)) return;
             }
 
         }
+        
         public static void Main(string[] args)
         {
+            Console.WriteLine("\nInput size:");
             N = Convert.ToInt32(Console.ReadLine());
-            float[,] matrix = new float[N, N + 1];
+            float[,] matrix = new float[3, 4] { { (float)1, (float)1, (float)15, (float)17 }, 
+                                                { (float)15, (float)0, (float)1, (float)16 }, 
+                                                { (float)4, (float)15, (float)1, (float)20 } };
             x = new float[N];
-            for (int i = 0; i < N; i++)
-            {
-                for (int j = 0; j < N + 1; j++)
-                    matrix[i, j] = (float)Convert.ToDouble(Console.ReadLine());
+            //Console.WriteLine("\nInput matrix:");
+            //for (int i = 0; i < N; i++)
+            //{
+            //    for (int j = 0; j < N + 1; j++)
+            //        matrix[i, j] = (float)Convert.ToDouble(Console.ReadLine());
 
+            //}
+            Console.WriteLine("\nMatrix:");
+            showMatrix(matrix);
+
+            //Console.WriteLine("\nMethod Gauss:");
+            //Gauss(matrix, N);
+            Iter_Method(matrix, N);;
+            Console.WriteLine("\nAnswers:");
+            for (int i = 0; i < N; i++)
+            {
+                Console.Write($"{x[i]} ");
             }
 
-            Console.WriteLine("Matrix");
-            for (int i = 0; i < N; i++)
-            {
-                for (int j = 0; j < N + 1; j++)
-                    Console.Write($"{matrix[i, j]} ");
-                Console.Write("\n");
-            }
-            Iter_Method(matrix, N);
-            for (int i = 0; i < N; i++)
-            {
-                Console.WriteLine(x[i]);
-            }
+            int a = Convert.ToInt32(Console.ReadLine());
         }
     }
 }
