@@ -98,7 +98,7 @@ namespace methodGauss
         {
             float sum = 0;
             for (int i = indexLine + 1; i < N; i++)
-                sum += matrix[i,indexColumn];
+                sum += matrix[i, indexColumn];
             return sum;
         }
         static public float[,] swapLines(float[,] matrix, int index)
@@ -107,7 +107,7 @@ namespace methodGauss
             {
                 float c = matrix[index, i];
                 matrix[index, i] = matrix[index + 1, i];
-                matrix[index+1, i] = c; 
+                matrix[index + 1, i] = c;
             }
             return matrix;
         }
@@ -147,6 +147,61 @@ namespace methodGauss
             }
             return max;
         }
+        static public void methodProgonki(float[,] matrix)
+        {
+            float alpha = 1;
+            float betta = 1;
+            int counter = 2;
+            alpha = matrix[0, 1] / matrix[0, 0];
+            betta = matrix[0, N] / matrix[0, 0];
+            float[] alphai = new float[N];
+            float[] bettai = new float[N];
+            float[] xi = new float[N];
+            for (int i = 0; i < N - 2; i++)
+            {
+                if (i == 0) alphai[i] = matrix[i + 1, counter] / (matrix[i + 1, counter - 1] - matrix[i + 1, counter - 2] * alpha);
+                else alphai[i] = matrix[i + 1, counter] / (matrix[i + 1, counter - 1] - matrix[i + 1, counter - 2] * alphai[i - 1]);
+                counter += 1;
+            }
+            counter = 2;
+
+            for (int i = 0; i < N - 2; i++)
+            {
+                if (i == 0) bettai[i] = (matrix[i + 1, N] - matrix[i + 1, counter - 2] * betta) / (matrix[i + 1, counter - 1] - matrix[i + 1, counter - 2] * alpha);
+                else bettai[i] = (matrix[i + 1, N] - matrix[i + 1, counter - 2] * betta) / (matrix[i + 1, counter - 1] - matrix[i + 1, counter - 2] * alphai[i]);
+                counter += 1;
+            }
+            for(int i = 0; i < N - 2; i++)
+            {
+                Console.WriteLine($" alpha - {alphai[i]}\n betta - {bettai[i]}");
+            }
+
+            for (int i = 1, j = 0; i < N; i++)
+            {
+                if (i == 1)
+                {
+                    matrix[i, i] -= matrix[i, i - 1] * alpha;
+                    matrix[i, N] -= matrix[i, i - 1] * betta;
+                }
+                else
+                {
+                    matrix[i, i] -= matrix[i, i - 1] * alphai[j];
+                    matrix[i, N] -= matrix[i, i - 1] * bettai[j];
+                    j += 1;
+                }
+                matrix[i, i - 1] = 0;
+            }
+            x[N - 1] = matrix[N - 1, N] / matrix[N - 1, N - 1];
+            for (int i = N - 2; i >= 0; i--)
+            {
+                if (i == 0) x[i] = betta - alpha * x[i + 1];
+                else x[i] = bettai[i + 1] - alphai[i + 1] * x[i + 1];
+            }
+            for (int i = 0; i < N; i++)
+            {
+                Console.WriteLine($"x{i} = {x[i]}");
+            }
+        }
         static public void Iter_Method(float[,] matrix, int N)
         {
             float[,] alpha = new float[N, N];
@@ -176,28 +231,28 @@ namespace methodGauss
             }
 
             Console.WriteLine("\nALPHA Matrix:");
-            for(int i=0; i<N; i++)
+            for (int i = 0; i < N; i++)
             {
                 for (int j = 0; j < N; j++)
                 {
-                    Console.Write($"{alpha[i,j]} ");
+                    Console.Write($"{alpha[i, j]} ");
                 }
                 Console.Write($"\n");
             }
             Console.WriteLine("\nBeta Matrix:");
-            for(int i=0; i<N;i++)
+            for (int i = 0; i < N; i++)
                 Console.WriteLine($"{beta[i]} ");
-            for (int j = 0; j < N; j++) //ищем максимальную сумму строк(норму)
-            {
-                for (int i = 0; i < N; i++)
-                {
-                    alpha[i, j] = alpha[i, j] / (float)20.0;
-                    buff += Math.Abs(alpha[i, j]);
-                }
-                if (buff > norm_B)
-                    norm_B = buff;
-                buff = (float)0.0;
-            }
+            //for (int j = 0; j < N; j++) //ищем максимальную сумму строк(норму)
+            //{
+            //    for (int i = 0; i < N; i++)
+            //    {
+            //        alpha[i, j] = alpha[i, j] / (float)20.0;
+            //        buff += Math.Abs(alpha[i, j]);
+            //    }
+            //    if (buff > norm_B)
+            //        norm_B = buff;
+            //    buff = (float)0.0;
+            //}
             int iter = 0;
             float[] t = new float[N];
             float norm = 0;
@@ -220,14 +275,14 @@ namespace methodGauss
                     for (int j = 0; j < N; j++)
                         sum_of_alpha += alpha[i, j] * (t[j]);
                     Console.WriteLine($"\nsum of alphs = {sum_of_alpha}");
-                    x[i] = beta[i] - sum_of_alpha;
+                    x[i] = beta[i] + sum_of_alpha;
 
                     Console.WriteLine($"\nx[{i}] = {beta[i]}+{sum_of_alpha} = {x[i]}");
                 }
                 //проверка условия окончания
 
                 float[] v = new float[N];
-                for(int i = 0; i < N; i++)
+                for (int i = 0; i < N; i++)
                 {
                     v[i] = t[i] - x[i];
                 }
@@ -235,14 +290,14 @@ namespace methodGauss
             }
 
         }
-        
+
         public static void Main(string[] args)
         {
             Console.WriteLine("\nInput size:");
             N = Convert.ToInt32(Console.ReadLine());
-            float[,] matrix = new float[3, 4] { { (float)1, (float)1, (float)15, (float)17 }, 
-                                                { (float)15, (float)0, (float)1, (float)16 }, 
-                                                { (float)4, (float)15, (float)1, (float)20 } };
+            float[,] matrix = new float[3, 4] { {(float)2, (float)-1, (float)0, (float)3 },
+                                                { (float)5, (float)4, (float)2, (float)6 },
+                                                 { (float)0, (float)1, (float)-3, (float)2 }};
             x = new float[N];
             //Console.WriteLine("\nInput matrix:");
             //for (int i = 0; i < N; i++)
@@ -256,14 +311,15 @@ namespace methodGauss
 
             //Console.WriteLine("\nMethod Gauss:");
             //Gauss(matrix, N);
-            Iter_Method(matrix, N);;
-            Console.WriteLine("\nAnswers:");
-            for (int i = 0; i < N; i++)
-            {
-                Console.Write($"{x[i]} ");
-            }
-
+           // Iter_Method(matrix, N); ;
+            //Console.WriteLine("\nAnswers:");
+            //for (int i = 0; i < N; i++)
+            //{
+            //    Console.Write($"{x[i]} ");
+            //}
+            methodProgonki(matrix);
             int a = Convert.ToInt32(Console.ReadLine());
         }
     }
 }
+
